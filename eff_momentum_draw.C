@@ -6,7 +6,7 @@ void eff_momentum_draw()
    float eff;
    float underthr_eff;
 
-   std::ifstream f_in1("from_paper_effpi_n1.13.csv");
+   std::ifstream f_in1("digi/from_paper_effpi_n1.13.csv");
    while( !f_in1.eof() )
    {
 	  std::string s1;
@@ -24,7 +24,7 @@ void eff_momentum_draw()
    f_in1.close();
 
 
-   std::ifstream f_in2("from_paper_effK_n1.13.csv");
+   std::ifstream f_in2("digi/from_paper_effK_n1.13.csv");
    while( !f_in2.eof() )
    {
      std::string s2;
@@ -111,7 +111,7 @@ void eff_momentum_draw()
    mg->GetXaxis()->SetRangeUser(0, 900);
    mg->Draw("AP");
    
-   c1->SaveAs("res.png");
+   c1->SaveAs("out/snd_1.13/res.png");
     
    
    TCanvas *c2 = new TCanvas();
@@ -137,6 +137,6 @@ void eff_momentum_draw()
    mg2->SetTitle("; P, MeV/c; #sigma");
    mg2->GetYaxis()->SetRangeUser(0, 7.0);
    mg2->Draw("AP");
-   c2->SaveAs("res_Ksigma.png");
+   c2->SaveAs("out/snd_1.13/res_Ksigma.png");
     
 } 

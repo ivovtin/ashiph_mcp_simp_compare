@@ -1,8 +1,12 @@
-void n105_npe_sigma()
+void n105_npe_sigma_snd()
 {
    gStyle->SetOptStat(0);
 
-   TString dir_out = "out";
+   TString dir_out = "out/snd_1.05";
+
+   TString fnameout = dir_out + "/" + "results.root";
+
+   TFile *fout = new TFile(fnameout,"RECREATE");
 
    TCanvas *c1 = new TCanvas();
    c1->cd();	
@@ -15,21 +19,11 @@ void n105_npe_sigma()
    nphe11->SetParameter(0,1.05);
    nphe11->SetParName(0,"n=1.05");
    nphe11->SetParName(1,"N_{pe}(#beta=1)");
-   //
-   //float max_mu = 2.40;  // mcp - snd
-   //float mu0 = 0.05;     // mcp - snd
-   //
-   //float mu0 = 0.351;     // u=53.5 t=15 n=1.05 p2
-   //float max_mu = 7.14;   // u=53.5 t=15 n=1.05 p2
-   //float max_mu = 5.14;   // u=53.5 t=15 n=1.05 p9
-   //
-   float mu0 = 0.80;      // u=57 t=45 n=1.05 p2
-   //float max_mu = 6.57;   // u=57 t=45 n=1.05 p2
-   float max_mu = 4.30;   // u=57 t=45 n=1.05 p2
-   //
+   float max_mu = 2.35;  // mcp - snd
    nphe11->SetParameter(1,max_mu);    // for n=1.05 6cm Integral SiPM OverVoltage=2V -> PDE(500)=25%
    nphe11->SetParName(2,"Const.lev from SiPM noises");
-   nphe11->SetParameter(2,mu0); // for 4.5MHz and window 78ns
+   nphe11->SetParameter(2,0.05);  // mcp - snd
+   //nphe11->SetParameter(3,0.14);  
    nphe11->SetParameter(3,0.05);   // mcp - snd  
    nphe11->SetParName(3,"#ksi"); 
    nphe11->SetParameter(4,1.6); // for n=1.05
@@ -40,7 +34,7 @@ void n105_npe_sigma()
    Float_t mpi=139.0;
    Float_t mka=498.0;
 
-   const int ncounts = 12;
+   const int ncounts = 4;
    float npethr_step = 1.0;
    float P1 = 200;
    float P2 = 300;
@@ -48,7 +42,7 @@ void n105_npe_sigma()
    TProfile* npee=new TProfile("npee","",1000,-0.5,990.5); // npe vs momentum for electrons
    TProfile* npemu=new TProfile("npemu","",1000,-0.5,990.5); // npe vs momentum for muons
    TProfile* npepi=new TProfile("npepi","",1000,-0.5,990.5); // npe vs momentum for pions
-   TProfile* pr1 = new TProfile("#sigma",TString::Format("%.1f < P, MeV/c < %.1f",P1,P2).Data(),100,0,6.5,0,5);  // sigma vs npe_trh 
+   TProfile* pr2 = new TProfile("sigma",TString::Format("%.1f < P, MeV/c < %.1f",P1,P2).Data(),100,0,6.5,0,5);  // sigma vs npe_trh 
 
    TProfile* Ksigma[ncounts];
    for (int k=0; k<ncounts; k++)
@@ -56,7 +50,7 @@ void n105_npe_sigma()
       Ksigma[k] = new TProfile(TString::Format("Ksigma%d",k).Data(),TString::Format("Nphe_{thr}=%.1f",k*npethr_step).Data(),250,-0.5,990.5);
    }
    
-   TH2F* null2=new TH2F("null2","",200,0,1000,55,-0.05,max_mu+1.5); // for n=1.05 and t=6cm
+   TH2F* null2=new TH2F("null2","",200,0,1000,55,-0.05,max_mu+0.5); // for n=1.05 and t=6cm
    null2->SetXTitle("P, #frac{MeV}{c}");
    null2->SetYTitle("N_{pe}");
 
@@ -97,7 +91,7 @@ void n105_npe_sigma()
          //if( k==5 && i<300 ) cout<<i<<"\t"<<Ntotal<<"\t"<<Npethr[k]<<"\t"<<N0ee[k]<<"\t"<<N0pi[k]<<endl;
          Ksigma[k]->Fill((float)i,abs(sqrt(2.)*(TMath::ErfInverse(1-2*underthr_eff_pi[k])+TMath::ErfInverse(1-2*(1-eff[k])))));
 
-         if( i>P1 && i<P2 ) pr1->Fill((float)Npethr[k],abs(sqrt(2.)*(TMath::ErfInverse(1-2*underthr_eff_pi[k])+TMath::ErfInverse(1-2*(1-eff[k])))));
+         if( i>P1 && i<P2 ) pr2->Fill((float)Npethr[k],abs(sqrt(2.)*(TMath::ErfInverse(1-2*underthr_eff_pi[k])+TMath::ErfInverse(1-2*(1-eff[k])))));
       }
    }
 
@@ -148,7 +142,7 @@ void n105_npe_sigma()
    g1->SetMarkerSize(0.8);
    g1->SetMarkerColor(8);
    g1->GetYaxis()->SetRangeUser(0, 3);
-   //g1->Draw("same");
+   g1->Draw("same");
 
    TLegend* leg1=new TLegend(100,max_mu/3,200,max_mu/3+1.5,"","");
    TLegendEntry *le1=leg1->AddEntry(npee,"e","elp");
@@ -157,7 +151,11 @@ void n105_npe_sigma()
    le2->SetTextColor(kGreen);
    TLegendEntry *le3=leg1->AddEntry(npepi,"#pi","elp");
    le3->SetTextColor(kBlue);
+   TLegendEntry *le4=leg1->AddEntry(g1,"#mu - article","elp");
+   le4->SetTextColor(kBlack);
    leg1->Draw("same");
+
+   //gPad->Update();
 
    c1->SaveAs(dir_out + "/" + "npe_momentum.png");
    
@@ -176,34 +174,15 @@ void n105_npe_sigma()
 
    TCanvas *c3 = new TCanvas();
    c3->cd();   
-   pr1->SetLineColor(kBlue);
-   pr1->SetMarkerColor(kBlue);
-   pr1->SetMarkerStyle(4);
-   //pr1->SetTitle("; Threshold, npe; #sigma");
-   pr1->GetXaxis()->SetTitle("Threshold, npe");
-   pr1->GetYaxis()->SetTitle("#sigma");
-   pr1->Draw("prof");
-   pr1->GetYaxis()->SetRangeUser(0, 3.5);
+   pr2->SetLineColor(kRed);
+   pr2->SetMarkerColor(kRed);
+   pr2->SetMarkerStyle(4);
+   //pr2->SetTitle("; Threshold, npe; #sigma");
+   pr2->GetXaxis()->SetTitle("Threshold, npe");
+   pr2->GetYaxis()->SetTitle("#sigma");
+   pr2->Draw("prof");
    c3->SaveAs(dir_out + "/" + "sigma.png");
 
-   TCanvas *c4 = new TCanvas();
-   c4->cd();   
-   TString dir_in = "out/snd_1.05";
-   TString fnamein = dir_in + "/" + "results.root";
-   TFile *infile = TFile::Open(fnamein);
-
-   TProfile* pr2 = (TProfile*)infile->Get("sigma");
-   pr1->Draw("prof");
-   pr2->Draw("same");
-
-   //TLegend* leg2=new TLegend(5, 3.5, 6, 4.0,"","");
-   TLegend* leg2=new TLegend(5, 1.5, 6, 2.0,"","");
-   TLegendEntry *le4=leg2->AddEntry(pr1,"ashiph sipm","elp");
-   le4->SetTextColor(kBlue);
-   TLegendEntry *le5=leg2->AddEntry(pr2,"ashiph mcp","elp");
-   le5->SetTextColor(kRed);
-   leg2->Draw("same");
-
-   c4->SaveAs(dir_out + "/" + "sigmas_compare.png");
-
+   fout->Write();
+   fout->Close();
 } 
